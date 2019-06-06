@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import geopandas as gpd
+import shapely
 
 from bokeh.plotting import figure, show, ColumnDataSource, save, curdoc, output_file
 from bokeh.layouts import column, row
@@ -7,8 +9,6 @@ from bokeh.models.tools import HoverTool
 from bokeh.models.formatters import TickFormatter
 from bokeh.layouts import widgetbox
 from bokeh.models.widgets import CheckboxGroup, Dropdown, Select
-import geopandas as gpd
-import shapely
 from bokeh.transform import factor_cmap, factor_mark
 from bokeh.palettes import Category10
 
