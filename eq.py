@@ -7,6 +7,10 @@ from bokeh.models.tools import HoverTool
 from bokeh.models.formatters import TickFormatter
 from bokeh.layouts import widgetbox
 from bokeh.models.widgets import CheckboxGroup, Dropdown, Select
+import geopandas as gpd
+import shapely
+from bokeh.transform import factor_cmap, factor_mark
+from bokeh.palettes import Category10
 
 def update_year_mag_plot(atrr, old, new):
     # see what years are active in selection
@@ -17,6 +21,17 @@ def update_year_mag_plot(atrr, old, new):
     # get the active selections
     new_src = ColumnDataSource(new_df)
     src_1.data.update(new_src.data)
+
+def update_eq_map(atrr, old, new):
+    # see what years are active in selection
+    years_active = [selections_1.labels[i] for i in selections_1.active]
+    # print(years_active)
+    # according to the years active the dataframe has to be formed
+    new_df = df.loc[df['Year'].isin(years_active)]
+    # get the active selections
+    new_src = ColumnDataSource(new_df)
+    # print(years_active)
+    src_3.data.update(new_src.data)
 
 #bar plot for earthquake counts for each year
 def update_barplot_eq_count(atrr,old,new):
@@ -37,16 +52,37 @@ def makedataframe():
     df['Time'] = df.DateTime.dt.time
     # print(df.head())
     year = df["Year"]
+    # Add magnitude category to the dataframe
+    size_class = []
+    for magnitude in df.Magnitude:
+        if magnitude >= 3.0 and magnitude <=3.9:
+            size_class.append("Minor")
+        elif magnitude >=4.0 and magnitude <=4.9:
+            size_class.append("Light")
+        elif magnitude >=5.0 and magnitude <=5.9:
+            size_class.append("Moderate")
+        elif magnitude >=6.0 and magnitude <=6.9:
+            size_class.append("Strong")
+        elif magnitude >=7.0 and magnitude <=7.9:
+            size_class.append("Major")
+        else:
+            size_class.append("Great")
+    df['size_class'] = size_class
     # For second plot (Earthquake count per year)
     df_1 = pd.DataFrame(df.Magnitude.groupby(df.Year).count())
     df_1['index'] = df_1.index
     df_1.columns = ["Count","year"]
-    return df,df_1
+    #inital dataframe to plot the Nepal Nepal
+    df_2 = df.loc[df['Year']== 2015]
     
-df,df_1 = makedataframe()
-src_1 = ColumnDataSource(df)
+    return df,df_1,df_2
 
+#make the dataframes  
+df,df_1,df_2 = makedataframe()
+#convert the df to ColumnDataSource
+src_1 = ColumnDataSource(df)
 src_2 = ColumnDataSource(df_1)
+src_3 = ColumnDataSource(df_2)
 
 #Plot the first graph with yearly earthquake and their magnitudes
 def year_mag_plot(src):
@@ -62,16 +98,18 @@ def year_mag_plot(src):
 
     # Quad glyphs to create a histogram
     p.circle(x='Year', y='Magnitude', size=10, color="navy",
-             source=src_1, hover_fill_color='Magnitude')
+             source=src, hover_fill_color='Magnitude')
 
     return p
+#categories for the earthquakes
+eq_type = ['Minor','Light','Moderate','Strong','Major','Great']
 #Selection for the first graph
 years = list(range(1994, 2020))
 years = list(map(str, years))
 # the year_options can now be used as options for select as it is an array of string
 selections = CheckboxGroup(labels=years, active=[
                            0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
-
+selections_1 = CheckboxGroup(labels=years, active=[21])
 # Graph the yearly earthquake with their magnitudes
 def year_count_plot(src):
     # Hover tool with vline mode
@@ -84,15 +122,43 @@ def year_count_plot(src):
                toolbar_location='below')
 
     # Quad glyphs to create a histogram
-    p.vbar(x= 'year', width=0.5, bottom=0,top= 'Count', color="firebrick", source = src_2)
+    p.vbar(x= 'year', width=0.5, bottom=0,top= 'Count', color="firebrick", source = src)
     
 
     return p
+
+def plot_eq_map(src):
+    hover = HoverTool(tooltips=[("Magnitude: ", "@Magnitude"), ("Epicenter: ", "@Epicenter"),
+                                ("Date: ", "@DateString")
+                                ])
+    p = figure(plot_width=800, plot_height=500,
+               title='Earthquakes in Nepal (1994-2014)',
+               tooltips=hover.tooltips,
+               toolbar_location='below')
+    #loading the shape file
+    sf = gpd.read_file('/Users/Saral/Documents/Python/earthquake/NPL_adm/NPL_adm3.shp')
+    #mapping the shape file
+    x, y = [], []
+    [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in sf['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
+    p.patches('x', 'y', source = ColumnDataSource(dict(x = x, y = y)), line_color = "white", line_width = 0.5)
+    p.circle(x='Long', y='Lat', size=10,
+             source=src,  legend = 'size_class',fill_alpha = 0.5,
+             color = factor_cmap('size_class','Category10_7', eq_type))
+    p.axis.visible = False
+    p.xgrid.grid_line_color = None
+    p.ygrid.grid_line_color = None
+
+    return p
+
+    
 ##########
 
 
 plot_1 = year_mag_plot(src_1)
 plot_2 = year_count_plot(src_2)
+plot_3 = plot_eq_map(src_3)
 selections.on_change('active', update_year_mag_plot)
+selections_1.on_change('active', update_eq_map)
 curdoc().add_root(column(row(plot_1, selections)))
 curdoc().add_root(column(row(plot_2)))
+curdoc().add_root(column(row(plot_3,selections_1)))
