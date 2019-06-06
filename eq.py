@@ -25,6 +25,7 @@ def update_year_mag_plot(atrr, old, new):
 def update_eq_map(atrr, old, new):
     # see what years are active in selection
     years_active = [selections_1.labels[i] for i in selections_1.active]
+    # eq_class = pass
     # print(years_active)
     # according to the years active the dataframe has to be formed
     new_df = df.loc[df['Year'].isin(years_active)]
