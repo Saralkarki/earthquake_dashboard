@@ -138,10 +138,10 @@ def plot_eq_map(src):
                tooltips=hover.tooltips,
                toolbar_location='below')
     #loading the shape file
-    sf = gpd.read_file('NPL_adm/NPL_adm3.shp')
+    map_nepal = gpd.read_file('NPL_adm/NPL_adm3.shp')
     #mapping the shape file
     x, y = [], []
-    [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in sf['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
+    [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in map_nepal['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
     p.patches('x', 'y', source = ColumnDataSource(dict(x = x, y = y)), line_color = "white", line_width = 0.5)
     p.circle(x='Long', y='Lat', size=10,
              source=src,  legend = 'size_class',fill_alpha = 0.5,
