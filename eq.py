@@ -9,6 +9,7 @@ from bokeh.models.tools import HoverTool
 from bokeh.models.formatters import TickFormatter
 from bokeh.layouts import widgetbox
 from bokeh.models.widgets import CheckboxGroup, Dropdown, Select
+
 from bokeh.transform import factor_cmap, factor_mark
 from bokeh.palettes import Category10
 
@@ -137,7 +138,7 @@ def plot_eq_map(src):
                tooltips=hover.tooltips,
                toolbar_location='below')
     #loading the shape file
-    sf = gpd.read_file('/Users/Saral/Documents/Python/earthquake/NPL_adm/NPL_adm3.shp')
+    sf = gpd.read_file('NPL_adm/NPL_adm3.shp')
     #mapping the shape file
     x, y = [], []
     [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in sf['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
