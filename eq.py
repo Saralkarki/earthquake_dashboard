@@ -11,7 +11,7 @@ from bokeh.layouts import widgetbox
 from bokeh.models import CheckboxGroup, Dropdown, Select, Panel, Tabs
 
 from bokeh.transform import factor_cmap, factor_mark
-from bokeh.palettes import Category10
+from bokeh.palettes import Category10,Plasma256,Spectral6
 
 def update_year_mag_plot(atrr, old, new):
     # see what years are active in selection
@@ -102,12 +102,13 @@ def year_mag_plot(src):
     # Quad glyphs to create a histogram
     p.circle(x='Year', y='Magnitude', size=10, color="navy",
              source=src, hover_fill_color='Magnitude')
-    p.title.text_color = "olive"
-    p.title.text_font = "times"
+    p.title.text_color = "black"
+    p.title.text_font = "helvetica"
     p.title.text_font_style = "italic"
-   
+    tab = Panel(child=p, title="Earthquake and their Magnitude(1994-2014)")
+    p.title.text_font_size = '16pt'
 
-    return p
+    return p,tab
 #categories for the earthquakes
 eq_type = ['Minor','Light','Moderate','Strong','Major','Great']
 #Selection for the first graph
@@ -130,9 +131,13 @@ def year_count_plot(src):
 
     # Quad glyphs to create a histogram
     p.vbar(x= 'year', width=0.5, bottom=0,top= 'Count', color="firebrick", source = src)
-    
+    tab = Panel(child=p, title="Earthquake count from 1994-2014")
+    p.title.text_color = "black"
+    p.title.text_font = "helvetica"
+    p.title.text_font_style = "italic"
+    p.title.text_font_size = '16pt'
 
-    return p
+    return p,tab
 
 def plot_eq_map(src):
     hover = HoverTool(tooltips=[("Magnitude: ", "@Magnitude"), ("Epicenter: ", "@Epicenter"),
@@ -148,19 +153,25 @@ def plot_eq_map(src):
     x, y = [], []
     [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in map_nepal['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
     p.patches('x', 'y', source = ColumnDataSource(dict(x = x, y = y)), line_color = "white", line_width = 0.5)
-    p.circle(x='Long', y='Lat', size=10,
-             source=src,  legend = 'size_class',fill_alpha = 0.5,
-             color = factor_cmap('size_class','Category10_7', eq_type))
+    for category,color in zip(eq_type,Spectral6):
+        p.circle(x='Long', y='Lat', size=10,source=src, legend = category, fill_alpha = 0.5,
+             color = color)
+    p.legend.location = "top_right"
+    p.legend.click_policy="mute"
     p.axis.visible = False
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
     p.border_fill_color = 'white'
-    p.background_fill_color = 'navy'
+    p.background_fill_color = 'black'
     p.outline_line_color = None
     p.grid.grid_line_color = None
-    
+    p.title.text_color = "black"
+    p.title.text_font = "helvetica"
+    p.title.text_font_style = "italic"
+    p.title.text_font_size = '16pt'
+    tab = Panel(child=p, title="Earthquakes based on their epicenters (1994-2014)")
 
-    return p
+    return p,tab
 
     
 ##########
@@ -168,13 +179,14 @@ def plot_eq_map(src):
 
 
 def callback():
-    plot_1 = year_mag_plot(src_1)
-    plot_2 = year_count_plot(src_2)
-    plot_3 = plot_eq_map(src_3)
+    plot_1, tab_1 = year_mag_plot(src_1)
+    plot_2, tab_2 = year_count_plot(src_2)
+    plot_3, tab_3 = plot_eq_map(src_3)
+    tabs = Tabs(tabs=[ tab_1, tab_2 ,tab_3])
     selections.on_change('active', update_year_mag_plot)
     selections_1.on_change('active', update_eq_map)
-    curdoc().add_root(column(row(plot_1, selections)))
-    curdoc().add_root(column(row(plot_2)))
-    curdoc().add_root(column(row(plot_3,selections_1)))
+    curdoc().add_root(column(row(tabs)))
+    # curdoc().add_root(column(row(plot_1, selections)))
+    # curdoc().add_root(column(row(plot_2)))
+    # curdoc().add_root(column(row(plot_3,selections_1)))
 callback()
-# curdoc().add_periodic_callback(callback, 1000)
