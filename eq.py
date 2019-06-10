@@ -154,10 +154,12 @@ def plot_eq_map(src):
     [(x.append(list(polygon.exterior.coords.xy[0])), y.append(list(polygon.exterior.coords.xy[1]))) for polygon in map_nepal['geometry'] if type(polygon.boundary) == shapely.geometry.linestring.LineString ]
     p.patches('x', 'y', source = ColumnDataSource(dict(x = x, y = y)), line_color = "white", line_width = 0.5)
     # for category,color in zip(eq_type,Spectral6):
-    p.circle(x='Long', y='Lat', size=10,source=src, legend = 'size_class', fill_alpha = 0.5,
-             color = 'red')
+    p.circle(x='Long', y='Lat', size=10,
+             source=src,  legend = 'size_class',fill_alpha = 0.5,
+             color = factor_cmap('size_class','Category10_7', eq_type))
     p.legend.location = "top_right"
-    p.legend.click_policy="mute"
+    p.legend.background_fill_color = 'black'
+    # p.legend.click_policy="mute"
     p.axis.visible = False
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
