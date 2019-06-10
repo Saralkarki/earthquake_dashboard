@@ -25,7 +25,7 @@ def update_year_mag_plot(atrr, old, new):
 
 def update_eq_map(atrr, old, new):
     # see what years are active in selection
-    years_active = [selections_1.labels[i] for i in selections_1.active]
+    years_active = [selections.labels[i] for i in selections.active]
     # eq_class = pass
     # print(years_active)
     # according to the years active the dataframe has to be formed
@@ -117,7 +117,7 @@ years = list(map(str, years))
 # the year_options can now be used as options for select as it is an array of string
 selections = CheckboxGroup(labels=years, active=[
                            0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
-selections_1 = CheckboxGroup(labels=years, active=[21])
+# selections_1 = CheckboxGroup(labels=years, active=[21])
 # Graph the yearly earthquake with their magnitudes
 def year_count_plot(src):
     # Hover tool with vline mode
@@ -186,8 +186,8 @@ def callback():
     plot_3, tab_3 = plot_eq_map(src_3)
     tabs = Tabs(tabs=[ tab_1, tab_2 ,tab_3])
     selections.on_change('active', update_year_mag_plot)
-    selections_1.on_change('active', update_eq_map)
-    curdoc().add_root(column(row(tabs)))
+    selections.on_change('active', update_eq_map)
+    curdoc().add_root(column(row(tabs,selections)))
     # curdoc().add_root(column(row(plot_1, selections)))
     # curdoc().add_root(column(row(plot_2)))
     # curdoc().add_root(column(row(plot_3,selections_1)))
