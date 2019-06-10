@@ -8,7 +8,7 @@ from bokeh.layouts import column, row
 from bokeh.models.tools import HoverTool
 from bokeh.models.formatters import TickFormatter
 from bokeh.layouts import widgetbox
-from bokeh.models.widgets import CheckboxGroup, Dropdown, Select
+from bokeh.models import CheckboxGroup, Dropdown, Select, Panel, Tabs
 
 from bokeh.transform import factor_cmap, factor_mark
 from bokeh.palettes import Category10
@@ -97,10 +97,15 @@ def year_mag_plot(src):
                title='Yearly Earthquake with Magnitudes(1994-2014)',
                x_axis_label='Year', y_axis_label='Magnitude', tooltips=hover.tooltips,
                toolbar_location='below')
+               
 
     # Quad glyphs to create a histogram
     p.circle(x='Year', y='Magnitude', size=10, color="navy",
              source=src, hover_fill_color='Magnitude')
+    p.title.text_color = "olive"
+    p.title.text_font = "times"
+    p.title.text_font_style = "italic"
+   
 
     return p
 #categories for the earthquakes
@@ -149,6 +154,11 @@ def plot_eq_map(src):
     p.axis.visible = False
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
+    p.border_fill_color = 'white'
+    p.background_fill_color = 'navy'
+    p.outline_line_color = None
+    p.grid.grid_line_color = None
+    
 
     return p
 
@@ -156,11 +166,15 @@ def plot_eq_map(src):
 ##########
 
 
-plot_1 = year_mag_plot(src_1)
-plot_2 = year_count_plot(src_2)
-plot_3 = plot_eq_map(src_3)
-selections.on_change('active', update_year_mag_plot)
-selections_1.on_change('active', update_eq_map)
-curdoc().add_root(column(row(plot_1, selections)))
-curdoc().add_root(column(row(plot_2)))
-curdoc().add_root(column(row(plot_3,selections_1)))
+
+def callback():
+    plot_1 = year_mag_plot(src_1)
+    plot_2 = year_count_plot(src_2)
+    plot_3 = plot_eq_map(src_3)
+    selections.on_change('active', update_year_mag_plot)
+    selections_1.on_change('active', update_eq_map)
+    curdoc().add_root(column(row(plot_1, selections)))
+    curdoc().add_root(column(row(plot_2)))
+    curdoc().add_root(column(row(plot_3,selections_1)))
+callback()
+# curdoc().add_periodic_callback(callback, 1000)
