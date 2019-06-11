@@ -13,7 +13,18 @@ from bokeh.models import CheckboxGroup, Dropdown, Select, Panel, Tabs
 from bokeh.transform import factor_cmap, factor_mark
 from bokeh.palettes import Category10,Plasma256,Spectral6
 
+def year_selection():
+    years = list(range(1994, 2020))
+    years = list(map(str, years))
+    selections = CheckboxGroup(labels=years, active=[
+                           0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
+    selections_1 = CheckboxGroup(labels=years, active=[21])
+    return selections,selections_1
+
+selections,selections_1 = year_selection()
+
 def update_year_mag_plot(atrr, old, new):
+    
     # see what years are active in selection
     years_active = [selections.labels[i] for i in selections.active]
     # print(years_active)
@@ -22,6 +33,7 @@ def update_year_mag_plot(atrr, old, new):
     # get the active selections
     new_src = ColumnDataSource(new_df)
     src_1.data.update(new_src.data)
+   
 
 def update_eq_map(atrr, old, new):
     # see what years are active in selection
@@ -34,6 +46,8 @@ def update_eq_map(atrr, old, new):
     new_src = ColumnDataSource(new_df)
     # print(years_active)
     src_3.data.update(new_src.data)
+
+    
 
 #bar plot for earthquake counts for each year
 def update_barplot_eq_count(atrr,old,new):
@@ -78,9 +92,17 @@ def makedataframe():
     df_2 = df.loc[df['Year']== 2015]
     
     return df,df_1,df_2
-
+def eq_class_df():
+    df_minor = df[df.size_class == "Minor"]
+    df_light = df[df.size_class == "Light"]
+    df_moderate = df[df.size_class == "Moderate"]
+    df_strong = df[df.size_class == "Strong"]
+    df_major = df[df.size_class == "Major"]
+    df_great = df[df.size_class == "Great"]
+    return df_minor,df_light,df_moderate,df_strong,df_major,df_great
 #make the dataframes  
 df,df_1,df_2 = makedataframe()
+df_minor,df_light,df_moderate,df_strong,df_major,df_great = eq_class_df()
 #convert the df to ColumnDataSource
 src_1 = ColumnDataSource(df)
 src_2 = ColumnDataSource(df_1)
@@ -105,19 +127,21 @@ def year_mag_plot(src):
     p.title.text_color = "black"
     p.title.text_font = "helvetica"
     p.title.text_font_style = "italic"
-    tab = Panel(child=p, title="Earthquake and their Magnitude(1994-2014)")
     p.title.text_font_size = '16pt'
+
+    tab = Panel(child=p, title="Earthquake and their Magnitude(1994-2014)")
+    
+    #Selection for the first graph
+    
 
     return p,tab
 #categories for the earthquakes
 eq_type = ['Minor','Light','Moderate','Strong','Major','Great']
-#Selection for the first graph
-years = list(range(1994, 2020))
-years = list(map(str, years))
+
 # the year_options can now be used as options for select as it is an array of string
-selections = CheckboxGroup(labels=years, active=[
-                           0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
-# selections_1 = CheckboxGroup(labels=years, active=[21])
+# selections = CheckboxGroup(labels=years, active=[
+#                            0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
+
 # Graph the yearly earthquake with their magnitudes
 def year_count_plot(src):
     # Hover tool with vline mode
@@ -171,7 +195,7 @@ def plot_eq_map(src):
     p.title.text_font = "helvetica"
     p.title.text_font_style = "italic"
     p.title.text_font_size = '16pt'
-    tab = Panel(child=p, title="Earthquakes based on their epicenters (1994-2014)")
+    tab = Panel(child=p , title="Earthquakes based on their epicenters (1994-2014)")
 
     return p,tab
 
@@ -179,14 +203,16 @@ def plot_eq_map(src):
 ##########
 
 
-
 def callback():
     plot_1, tab_1 = year_mag_plot(src_1)
     plot_2, tab_2 = year_count_plot(src_2)
-    plot_3, tab_3 = plot_eq_map(src_3)
+    # plot_3, tab_3 = plot_eq_map(src_3)
+    plot_3, tab_3 = plot_eq_map(src_1)
+
     tabs = Tabs(tabs=[ tab_1, tab_2 ,tab_3])
     selections.on_change('active', update_year_mag_plot)
     selections.on_change('active', update_eq_map)
+    
     curdoc().add_root(column(row(tabs,selections)))
     # curdoc().add_root(column(row(plot_1, selections)))
     # curdoc().add_root(column(row(plot_2)))
